@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package savonlinja;
 
 import java.util.Comparator;
@@ -16,17 +11,36 @@ public class Ticket implements Comparable, Comparator<Ticket> {
     private float price;
     private int day, month, year;
     private int id;
+    private String leaves;
+    private String travelTimeString;
+    private int travelhours, travelminutes;
 
     public int getId() {
         return id;
     }
 
-    public Ticket(float price, int day, int month, int year, int id) {
+    public Ticket(float price, int day, int month, int year, int id, String traveltime) {
         this.price = price;
         this.day = day;
         this.month = month;
         this.year = year;
         this.id = id;
+        this.travelTimeString = traveltime;
+        countTravelTimeToHours(traveltime);
+    }
+    
+    public void countTravelTimeToHours(String traveltime){
+        traveltime = traveltime.replaceAll(" ", "");
+        char tunnit = traveltime.charAt(0);
+        char minuutitEka = traveltime.charAt(2);
+        char minuutitToka = traveltime.charAt(3);
+        
+
+        
+        this.travelhours = Character.getNumericValue(tunnit);
+        this.travelminutes = Character.getNumericValue(minuutitEka) + Character.getNumericValue(minuutitToka);
+        
+        
     }
 
     @Override
@@ -39,25 +53,34 @@ public class Ticket implements Comparable, Comparator<Ticket> {
         return hash;
     }
 
+
+
     @Override
     public String toString() {
-        return this.price + "€" + addSpaces(this.price) + this.day + "." + this.month + "." + this.year;
+        String bonusSpaces = "";
+//        if(this.day < 10){
+//            bonusSpaces = " ";
+//        }
+        
+        return this.price + "€" + addSpaces(this.price) + bonusSpaces + this.day + "." + this.month + "." + this.year + "   Traveltime: " + travelTimeString;
     }
 
     public String addSpaces(float money) {
         int length = String.valueOf(money).length();
 
         if (length == 3) {
-            return "            ";
+            return "       ";
         }
         if (length == 4) {
-            return "         ";
+            return "      ";
         }
         if (length == 5) {
-            return "        ";
+            return "     ";
         }
-        return "asdasdasd";
+        return "too long money value!";
     }
+    
+    
 
     @Override
     public boolean equals(Object obj) {

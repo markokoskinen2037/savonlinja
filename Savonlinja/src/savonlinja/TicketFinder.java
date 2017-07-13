@@ -1,8 +1,3 @@
-/*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
- */
 package savonlinja;
 
 import java.io.BufferedReader;
@@ -18,6 +13,7 @@ import javax.swing.JTextArea;
 
 /**
  * Communicates with the server by reading and processing data.
+ *
  * @author markokos
  */
 public class TicketFinder {
@@ -26,11 +22,12 @@ public class TicketFinder {
     private static ArrayList<Ticket> tickets = new ArrayList<>();
     private float saleMultiplier = 1;
     private JTextArea output;
+    private int tralveTimeLimit;
 
-    public void findTickets(int startDay, int endDay, int month, int year, float sale, int direction, JTextArea output) throws MalformedURLException, IOException {
+    public void findTickets(int startDay, int endDay, int month, int year, float sale, int direction, JTextArea output, int travelTimeLimit) throws MalformedURLException, IOException {
 
         if (sale != 0) {
-            System.out.println("juuh saat alennuksen :DDD");
+            System.out.println("Sale is being applied to prices.");
             float value = sale / 100; // 0.2
             System.out.println(value);
             saleMultiplier = 1 - value;
@@ -44,6 +41,7 @@ public class TicketFinder {
         this.year = year;
         this.direction = direction;
         this.output = output;
+        this.tralveTimeLimit = travelTimeLimit;
 
         int dayschecked = 1;
         int daysleft = endDay - startDay + 1;
@@ -80,31 +78,50 @@ public class TicketFinder {
             BufferedReader br = new BufferedReader(new InputStreamReader(is));
 
             String line = null;
-            String todaysPrices = ";";
             boolean alreadyexists = false;
+            String traveltime = "null";
+            ArrayList<String> traveltimeList = new ArrayList<>();
+            int counter = 0;
+
             // read each line and write to System.out
             while ((line = br.readLine()) != null) {
-                System.out.println(line);
+                //System.out.println(line);
+                if (line.contains("h") && line.contains("min") && !line.contains("Odotusaika") && line.length() < 20) {
+                    System.out.println(line);
+                    traveltime = line;
+                    traveltimeList.add(traveltime);
+                }
                 if (line.contains("€")) {
                     line = line.replace("€", "");
                     line = line.replace(",", ".");
 
-                    Ticket newTicket = new Ticket(Float.parseFloat(line) * this.saleMultiplier, startDay, month, year, ticketId);
-                    ticketId++;
-                    //System.out.println(newTicket.hashCode());
+                    String test = traveltimeList.get(counter);
 
-                    for (Ticket ticket : tickets) {
-                        if (ticket.hashCode() == newTicket.hashCode()) {
-                            alreadyexists = true;
-                            break;
+                    test = test.replaceAll(" ", "");
+                    char tunnit = test.charAt(0);
+                    int travelhours = Character.getNumericValue(tunnit);
+                    
+                    
+                    ;
+
+                    if (travelhours <= this.tralveTimeLimit) {
+                        Ticket newTicket = new Ticket(Float.parseFloat(line) * this.saleMultiplier, startDay, month, year, ticketId, traveltimeList.get(counter));
+                        counter++;
+                        ticketId++;
+                        for (Ticket ticket : tickets) {
+                            if (ticket.hashCode() == newTicket.hashCode()) {
+                                alreadyexists = true;
+                                break;
+                            }
                         }
-                    }
 
-                    if (alreadyexists == false) {
-                        tickets.add(newTicket);
+                        if (alreadyexists == false) {
+                            tickets.add(newTicket);
+                        }
+                    } else {
+                        counter++;
                     }
-
-                    //System.out.println(line);
+                    
                 }
 
             }
@@ -123,7 +140,7 @@ public class TicketFinder {
 
         ArrayList<Float> unsortedPrices = prices;
         Collections.sort(prices);
-        System.out.println(unsortedPrices);
+        //System.out.println(unsortedPrices);
 
         Collections.sort(tickets);
         for (Ticket ticket : tickets) {
